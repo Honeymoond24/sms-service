@@ -1,0 +1,24 @@
+services:
+  api:
+    container_name: "api"
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - migration
+    ports:
+      - "8000:8000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "32m"
+        max-file: "3"
+
+#  migration:
+#    container_name: "migration"
+#    image: migrate/migrate
+#    env_file:
+#      - .env
+#    volumes:
+#      - ./internal/infrastructure/database/migrations:/migrations
+#    command: ["-path", "/migrations", "-database", "sqlite://sms-service.sqlite", "up"]
