@@ -2,8 +2,8 @@ package application
 
 import "github.com/Honeymoond24/sms-service/internal/domain"
 
-func GetServices() {
-
+func GetServices(servicesRepo ServicesRepository) {
+	//servicesRepo :=
 }
 
 func GetNumber() {

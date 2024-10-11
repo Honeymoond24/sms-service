@@ -1,6 +1,7 @@
 package domain
 
 type Service struct {
-	ID   int
-	Name string
+	ID     int
+	Name   string
+	Amount int
 }

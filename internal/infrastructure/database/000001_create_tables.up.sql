@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS countries (
+    id INT PRIMARY KEY AUTOINCREMENT,
+    country_code INT NOT NULL,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS services (
+    id INT PRIMARY KEY AUTOINCREMENT,
+    service_code VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS phone_numbers (
+    id INT PRIMARY KEY AUTOINCREMENT,
+    country_id INT NOT NULL,
+    operator VARCHAR(255) NOT NULL,
+    number VARCHAR(255) NOT NULL,
+    FOREIGN KEY (country_id) REFERENCES countries (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS activations (
+    id INT PRIMARY KEY AUTOINCREMENT,
+    phone_number_id INT NOT NULL,
+    code VARCHAR(255) NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sms (
+    id INT PRIMARY KEY AUTOINCREMENT,
+    phone_number_id INT NOT NULL,
+    message TEXT NOT NULL,
+    is_sent BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    sent_at TIMESTAMP,
+    FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE CASCADE
+);

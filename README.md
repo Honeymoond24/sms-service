@@ -31,3 +31,8 @@ go install -tags 'sqlite' github.com/golang-migrate/migrate/v4/cmd/migrate@lates
 ```shell
 migrate create -ext sql -dir internal/infrastructure/database/migrations -seq create_tablename_table
 ```
+echo-swagger:
+```shell
+go install github.com/swaggo/swag/cmd/swag@latest
+swag init
+```
