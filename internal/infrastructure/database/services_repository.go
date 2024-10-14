@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Honeymoond24/sms-service/internal/domain"
+	"maps"
 )
 
 type SMSServiceRepository struct {
@@ -15,11 +16,56 @@ func NewServicesRepository(db *sql.DB) *SMSServiceRepository {
 	return &SMSServiceRepository{db}
 }
 
-func (r *SMSServiceRepository) GetServices() (map[string][]domain.Service, error) {
+func (r *SMSServiceRepository) GetServiceCodes(ch chan map[string]int) error {
+	rows, err := r.db.Query(`SELECT service_code FROM services;`)
+	if err != nil {
+		return err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println("Error while closing rows:", err)
+		}
+	}(rows)
+
+	serviceCodes := make(map[string]int)
+	for rows.Next() {
+		var code string
+		err := rows.Scan(&code)
+		if err != nil {
+			return err
+		}
+		serviceCodes[code] = 0
+	}
+
+	ch <- serviceCodes
+	return nil
+}
+
+func (r *SMSServiceRepository) GetServices() (map[string]map[string]int, error) {
+	serviceCodesCh := make(chan map[string]int)
+	go func(ch chan map[string]int) {
+		err := r.GetServiceCodes(ch)
+		if err != nil {
+			fmt.Println("Error while getting service codes:", err)
+		}
+	}(serviceCodesCh)
 	rows, err := r.db.Query(`
-		SELECT c.name, s.name, s.amount
-		FROM countries AS c
-		JOIN services AS s ON c.id = s.country_id;
+		WITH phone_count AS (SELECT c.name AS country, COUNT(p.id) AS count
+                     FROM phone_numbers p
+                              JOIN countries c on c.id = p.country_id
+                     GROUP BY c.name)
+		SELECT
+			countries.name AS country,
+			ifnull(services.service_code, '') AS service,
+			pc.count - COUNT(activations.id) AS diff,
+			pc.count AS total
+		FROM phone_numbers
+				 LEFT JOIN activations ON phone_numbers.id = activations.phone_id
+				 LEFT JOIN countries ON phone_numbers.country_id = countries.id
+				 LEFT JOIN services ON activations.service_id = services.id
+				JOIN phone_count pc ON pc.country = countries.name
+		GROUP BY countries.name, services.service_code;
 	`)
 	if err != nil {
 		return nil, err
@@ -31,15 +77,26 @@ func (r *SMSServiceRepository) GetServices() (map[string][]domain.Service, error
 		}
 	}(rows)
 
-	countries := make(map[string][]domain.Service)
+	serviceCodes := <-serviceCodesCh
+	fmt.Println(serviceCodes)
+
+	countries := make(map[string]map[string]int)
 	for rows.Next() {
-		var service domain.Service
-		var country string
-		err := rows.Scan(&country, &service.Name, &service.Amount)
-		if services, ok := countries[country]; ok {
-			countries[country] = append(services, service)
+		var country, serviceCode string
+		var diff, total int
+		serviceCodesPerCountry := make(map[string]int)
+		maps.Copy(serviceCodesPerCountry, serviceCodes)
+
+		err := rows.Scan(&country, &serviceCode, &diff, &total)
+
+		for k, _ := range serviceCodesPerCountry {
+			serviceCodesPerCountry[k] = total
+		}
+		fmt.Println("serviceCodesPerCountry", serviceCodesPerCountry)
+		if _, ok := countries[country]; ok {
+			countries[country][serviceCode] = diff
 		} else {
-			countries[country] = []domain.Service{service}
+			countries[country] = serviceCodesPerCountry
 		}
 		if err != nil {
 			return nil, err

@@ -32,8 +32,8 @@ func GetServices(c echo.Context, body map[string]interface{}, service *applicati
 			OperatorMap: make(map[string]map[string]int),
 		}
 		c.OperatorMap["any"] = make(map[string]int)
-		for _, service := range services {
-			c.OperatorMap["any"][service.Name] = service.Amount
+		for serviceCode, diff := range services {
+			c.OperatorMap["any"][serviceCode] = diff
 		}
 
 		countryList = append(countryList, c)

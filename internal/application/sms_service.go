@@ -14,7 +14,7 @@ func NewSmsService(servicesRepo ServicesRepository) *SmsService {
 	return &SmsService{servicesRepo}
 }
 
-func (s *SmsService) GetServices() (map[string][]domain.Service, error) {
+func (s *SmsService) GetServices() (map[string]map[string]int, error) {
 	countries, err := s.repo.GetServices()
 	if err != nil {
 		log.Println(err)
