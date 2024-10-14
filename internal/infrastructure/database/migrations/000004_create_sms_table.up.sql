@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS sms (
-    id INTEGER PRIMARY KEY,
-    sms_id INTEGER NOT NULL,
-    phone VARCHAR(63) NOT NULL,
-    phone_from VARCHAR(255) NOT NULL,
-    text TEXT NOT NULL
-);
