@@ -3,6 +3,7 @@ package rest
 import (
 	"github.com/Honeymoond24/sms-service/internal/application"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 )
 
@@ -15,11 +16,12 @@ type GetServicesResponse struct {
 	Status      string    `json:"status"`
 }
 
-func GetServices(c echo.Context, body map[string]interface{}, repo application.ServicesRepository) error {
+func GetServices(c echo.Context, body map[string]interface{}, service *application.SmsService) error {
 	c.Logger().Info("GetServices", body)
-	countries, err := repo.GetServices()
 
+	countries, err := service.GetServices()
 	if err != nil {
+		log.Println(err)
 		return c.String(http.StatusInternalServerError, "Internal server error")
 	}
 

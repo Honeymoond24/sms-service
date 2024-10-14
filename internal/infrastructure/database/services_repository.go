@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Honeymoond24/sms-service/internal/domain"
 )
@@ -48,21 +49,34 @@ func (r *SMSServiceRepository) GetServices() (map[string][]domain.Service, error
 	return countries, nil
 }
 
+// GetPhoneNumber
+// Input example:
+//
+//	"country": "russia",
+//	"operator": "any",
+//	"service": "tg",
+//	"sum": 20.00,
+/*
+Actions:
+- Get number from DB by filters: where phone number and service not in activations and provided country match
+- Save sum, service, phone number into Activations
+- return number and activation ID
+*/
 func (r *SMSServiceRepository) GetPhoneNumber(
-	country, _ string, // country, service
-	_ int, // sum
+	country, service string, // country, service
+	sum int, // sum
 	exceptionPhoneSet []string,
 ) (string, int, error) {
+	fmt.Println("GetPhoneNumber", country, service, sum, exceptionPhoneSet)
 	// TODO: Implement filtering by exceptionPhoneSet
 	args := []interface{}{country}
 	if len(exceptionPhoneSet) > 0 {
 		args = append(args, fmt.Sprintf("%s%%", exceptionPhoneSet[0]))
 	}
 	rows, err := r.db.Query(`
-		SELECT pn.number, a.id
+		SELECT pn.number
 		FROM phone_numbers AS pn
 		JOIN countries AS c ON pn.country_id = c.id
-		JOIN activations AS a ON pn.activation_id = a.id
 		WHERE c.name = ? AND pn.number NOT LIKE ?;
 	`, args...)
 	if err != nil {
@@ -85,4 +99,33 @@ func (r *SMSServiceRepository) GetPhoneNumber(
 	}
 
 	return number, activationID, nil
+}
+
+func (r *SMSServiceRepository) StoreSms(sms domain.SMS) error {
+	_, err := r.db.Exec(`
+		INSERT INTO sms (sms_id, phone, phone_from, text)
+		VALUES (?, ?, ?, ?);
+	`, sms.ID, sms.Phone, sms.PhoneFrom, sms.Text)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *SMSServiceRepository) GetPhoneNumberByPhone(phone int) (domain.PhoneNumber, error) {
+	var number domain.PhoneNumber
+	err := r.db.QueryRow(`
+		SELECT id, number
+		FROM phone_numbers
+		WHERE number = ?;
+	`, phone).Scan(&number.ID, &number.Number)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.PhoneNumber{}, nil
+		}
+		return domain.PhoneNumber{}, err
+	}
+
+	return number, nil
 }

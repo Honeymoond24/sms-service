@@ -1,20 +1,21 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/Honeymoond24/sms-service/internal/application"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-func GetNumber(c echo.Context, body map[string]interface{}, repo application.ServicesRepository) error {
+func GetNumber(c echo.Context, body map[string]interface{}, service *application.SmsService) error {
 	c.Logger().Info("GetNumber", body)
 
-	country, ok := body["country"].(string)
+	countryName, ok := body["country"].(string)
 	if !ok {
 		return c.String(http.StatusBadRequest, "Invalid country")
 	}
 
-	service, ok := body["service"].(string)
+	serviceName, ok := body["service"].(string)
 	if !ok {
 		return c.String(http.StatusBadRequest, "Invalid service")
 	}
@@ -36,13 +37,14 @@ func GetNumber(c echo.Context, body map[string]interface{}, repo application.Ser
 		}
 	}
 
-	number, activationID, err := repo.GetPhoneNumber(
-		country,
-		service,
+	number, activationID, err := service.GetNumber(
+		countryName,
+		serviceName,
 		int(sum),
 		phonePrefixes,
 	)
 	if err != nil {
+		fmt.Println(err)
 		return c.String(http.StatusInternalServerError, "Internal server error")
 	}
 

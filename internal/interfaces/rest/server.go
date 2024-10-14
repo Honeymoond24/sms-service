@@ -9,21 +9,21 @@ import (
 )
 
 type Server struct {
-	srv          *echo.Echo
-	servicesRepo application.ServicesRepository
+	srv     *echo.Echo
+	service *application.SmsService
 }
 
-func NewServer(repo application.ServicesRepository) *Server {
+func NewServer(service *application.SmsService) *Server {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	s := &Server{srv: e, servicesRepo: repo}
+	s := &Server{srv: e, service: service}
 	e.POST("/", s.HandlerBase)
 	return s
 }
 
 func (s *Server) Run() {
-	s.srv.Logger.Fatal(s.srv.Start(":8080"))
+	s.srv.Logger.Fatal(s.srv.Start("127.0.0.1:8000"))
 }
 
 func (s *Server) HandlerBase(c echo.Context) error {
@@ -31,25 +31,25 @@ func (s *Server) HandlerBase(c echo.Context) error {
 	err := json.NewDecoder(c.Request().Body).Decode(&jsonMap)
 	if err != nil {
 		c.Logger().Error(err)
-		return c.String(http.StatusBadRequest, "Bad request")
+		return c.String(http.StatusUnprocessableEntity, "unprocessable entity")
 	}
 	if _, ok := jsonMap["action"]; !ok {
-		return c.String(http.StatusBadRequest, "Bad request")
+		return c.String(http.StatusBadRequest, "action field required")
 	}
 	if _, ok := jsonMap["key"]; !ok {
-		return c.String(http.StatusBadRequest, "Bad request")
+		return c.String(http.StatusBadRequest, "key field required")
 	}
 
 	switch jsonMap["action"] {
 	case "GET_SERVICES":
-		return GetServices(c, jsonMap, s.servicesRepo)
+		return GetServices(c, jsonMap, s.service)
 	case "GET_NUMBER":
-		return GetNumber(c, jsonMap, s.servicesRepo)
-	case "FINISH_ACTIVATION":
-		return FinishActivation(c, jsonMap)
+		return GetNumber(c, jsonMap, s.service)
 	case "PUSH_SMS":
-		return PushSms(c, jsonMap)
+		return PushSms(c, jsonMap, s.service)
+	case "FINISH_ACTIVATION":
+		return FinishActivation(c, jsonMap, s.service)
 	default:
-		return c.String(http.StatusBadRequest, "Bad request")
+		return c.String(http.StatusBadRequest, "unknown action type")
 	}
 }

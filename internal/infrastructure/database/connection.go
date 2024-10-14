@@ -1,12 +1,15 @@
 package database
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
 	_ "modernc.org/sqlite"
+	"time"
 )
 
 func NewDB(databaseDSN string) *sql.DB {
@@ -14,6 +17,13 @@ func NewDB(databaseDSN string) *sql.DB {
 
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err = db.PingContext(ctx)
+	if err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
 	}
 
 	return db
@@ -32,6 +42,9 @@ func Migration(db *sql.DB) {
 	}
 	err = m.Up()
 	if err != nil {
-		log.Printf("Failed to run migration: %v", err)
+		if errors.Is(err, migrate.ErrNoChange) {
+			return
+		}
+		log.Fatalf("Failed to run migration: %v", err)
 	}
 }

@@ -1,7 +1,8 @@
 package domain
 
 type SMS struct {
-	ID         int
-	Text       string
-	ReceivedAt string
+	ID        int
+	Phone     int
+	PhoneFrom string
+	Text      string
 }

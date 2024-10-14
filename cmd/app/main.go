@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"github.com/Honeymoond24/sms-service/internal/application"
 	"github.com/Honeymoond24/sms-service/internal/config"
 	"github.com/Honeymoond24/sms-service/internal/infrastructure/database"
 	"github.com/Honeymoond24/sms-service/internal/interfaces/rest"
@@ -22,6 +23,7 @@ func main() {
 	database.Migration(db)
 
 	servicesRepository := database.NewServicesRepository(db)
+	smsService := application.NewSmsService(servicesRepository)
 
-	rest.NewServer(servicesRepository).Run()
+	rest.NewServer(smsService).Run()
 }
