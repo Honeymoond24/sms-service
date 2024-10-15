@@ -35,7 +35,7 @@ func PushSms(c echo.Context, body map[string]interface{}, service *application.S
 
 	sms := domain.SMS{
 		ID:        smsId,
-		Phone:     phone,
+		PhoneTo:   domain.PhoneNumber{Number: phone},
 		PhoneFrom: phoneFrom,
 		Text:      text,
 	}

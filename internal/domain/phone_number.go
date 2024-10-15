@@ -2,6 +2,6 @@ package domain
 
 type PhoneNumber struct {
 	ID       int
-	Number   string
+	Number   int
 	Operator string
 }

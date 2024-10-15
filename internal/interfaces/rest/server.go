@@ -23,10 +23,20 @@ func NewServer(service *application.SmsService) *Server {
 }
 
 func (s *Server) Run() {
-	s.srv.Logger.Fatal(s.srv.Start("127.0.0.1:8000"))
+	s.srv.Logger.Fatal(s.srv.Start(":8000"))
 }
 
 func (s *Server) HandlerBase(c echo.Context) error {
+	if c.Request().Method != http.MethodPost {
+		return c.String(http.StatusMethodNotAllowed, "method not allowed")
+	}
+	if c.Request().Header.Get("Content-Type") != "application/json" {
+		return c.String(http.StatusUnsupportedMediaType, "unsupported media type")
+	}
+	if c.Request().Header.Get("User-Agent") == "" {
+		return c.String(http.StatusBadRequest, "user agent header required")
+	}
+
 	jsonMap := make(map[string]interface{})
 	err := json.NewDecoder(c.Request().Body).Decode(&jsonMap)
 	if err != nil {

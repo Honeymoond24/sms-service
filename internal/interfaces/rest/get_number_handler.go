@@ -48,7 +48,7 @@ func GetNumber(c echo.Context, body map[string]interface{}, service *application
 		return c.String(http.StatusInternalServerError, "Internal server error")
 	}
 
-	if number == "" {
+	if number == 0 {
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"status": "NO_NUMBERS",
 		})

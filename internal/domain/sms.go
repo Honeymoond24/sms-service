@@ -2,7 +2,7 @@ package domain
 
 type SMS struct {
 	ID        int
-	Phone     int
+	PhoneTo   PhoneNumber
 	PhoneFrom string
 	Text      string
 }

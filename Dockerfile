@@ -13,6 +13,9 @@ FROM alpine:latest
 
 WORKDIR /root/
 
+COPY --from=build /app/.env .
+COPY --from=build /app/db ./db
+COPY --from=build /app/internal/infrastructure/database/migrations ./internal/infrastructure/database/migrations
 COPY --from=build /app/main .
 
 CMD ["./main"]

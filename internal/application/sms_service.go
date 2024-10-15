@@ -24,29 +24,30 @@ func (s *SmsService) GetServices() (map[string]map[string]int, error) {
 	return countries, nil
 }
 
-func (s *SmsService) GetNumber(countryName, serviceName string, sum int, phonePrefixes []string) (string, int, error) {
+func (s *SmsService) GetNumber(countryName, serviceName string, sum int, phonePrefixes []string) (int, int, error) {
 	number, activationID, err := s.repo.GetPhoneNumber(
 		countryName,
 		serviceName,
-		int(sum),
+		sum,
 		phonePrefixes,
 	)
 	if err != nil {
-		return "", 0, errors.New("error while getting phone number")
+		return 0, 0, errors.New("error while getting phone number")
 	}
 
 	return number, activationID, nil
 }
 
 func (s *SmsService) PushSms(sms domain.SMS) error {
-	phoneNumber, err := s.repo.GetPhoneNumberByPhone(sms.Phone)
+	phoneNumber, err := s.repo.GetPhoneNumberByPhone(sms.PhoneTo.Number)
 	if err != nil {
 		log.Println(err)
 		return errors.New("error while getting phone number")
 	}
-	if phoneNumber.Number == "" {
+	if phoneNumber.Number == 0 {
 		return PhoneNotFound
 	}
+	sms.PhoneTo = phoneNumber
 	err = s.repo.StoreSms(sms)
 	if err != nil {
 		log.Println(err)
@@ -56,6 +57,6 @@ func (s *SmsService) PushSms(sms domain.SMS) error {
 	return nil
 }
 
-func (s *SmsService) FinishActivation(_ domain.PhoneNumber) {
-
+func (s *SmsService) FinishActivation(activationId, status int) error {
+	return s.repo.FinishActivation(activationId, status)
 }

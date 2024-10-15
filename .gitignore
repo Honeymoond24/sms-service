@@ -27,5 +27,5 @@ go.work.sum
 # IDE
 .idea
 
-# Docker volumes
-.docker_volumes
+# Database
+*.sqlite
