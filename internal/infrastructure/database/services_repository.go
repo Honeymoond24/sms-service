@@ -92,7 +92,7 @@ func (r *SMSServiceRepository) GetServices() (map[string]map[string]int, error) 
 
 		err := rows.Scan(&country, &serviceCode, &diff, &total)
 
-		for k, _ := range serviceCodesPerCountry {
+		for k := range serviceCodesPerCountry {
 			serviceCodesPerCountry[k] = total
 		}
 		if _, ok := countries[country]; ok {
