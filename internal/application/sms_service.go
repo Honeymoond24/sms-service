@@ -32,6 +32,9 @@ func (s *SmsService) GetNumber(countryName, serviceName string, sum int, phonePr
 		phonePrefixes,
 	)
 	if err != nil {
+		if errors.Is(err, PhoneNotFound) {
+			return 0, 0, PhoneNotFound
+		}
 		return 0, 0, errors.New("error while getting phone number")
 	}
 

@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"fmt"
+	"errors"
 	"github.com/Honeymoond24/sms-service/internal/application"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -44,7 +44,11 @@ func GetNumber(c echo.Context, body map[string]interface{}, service *application
 		phonePrefixes,
 	)
 	if err != nil {
-		fmt.Println(err)
+		if errors.Is(err, application.PhoneNotFound) {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"status": "NO_NUMBERS",
+			})
+		}
 		return c.String(http.StatusInternalServerError, "Internal server error")
 	}
 

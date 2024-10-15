@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"github.com/Honeymoond24/sms-service/internal/domain"
 	"maps"
 	"strings"
+	"time"
 )
 
 type SMSServiceRepository struct {
@@ -169,7 +171,10 @@ func (r *SMSServiceRepository) GetPhoneNumber(
 		WHERE c.name = ? AND p.id NOT IN (SELECT id FROM sp)
 	` + queryArgs + ` LIMIT 1;`
 
-	tx, err := r.db.Begin()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		fmt.Println("Error while starting transaction:", err)
 		return 0, 0, err
@@ -180,7 +185,7 @@ func (r *SMSServiceRepository) GetPhoneNumber(
 	err = row.Scan(&phoneId, &number)
 	if err != nil {
 		fmt.Println("Error while scanning rows:", err)
-		return 0, 0, err
+		return 0, 0, application.PhoneNotFound
 	}
 
 	serviceIdCh := make(chan int)
