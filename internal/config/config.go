@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	DatabaseDSN string
+	PushSMSURL  string
 }
 
 func NewConfig() *Config {
@@ -22,7 +23,13 @@ func NewConfig() *Config {
 		log.Fatal("Environment variable is missing: DATABASE_DSN")
 	}
 
+	pushSMSURL := os.Getenv("PUSH_SMS_URL")
+	if pushSMSURL == "" {
+		log.Fatal("Environment variable is missing: PUSH_SMS_URL")
+	}
+
 	return &Config{
 		DatabaseDSN: databaseDSN,
+		PushSMSURL:  pushSMSURL,
 	}
 }

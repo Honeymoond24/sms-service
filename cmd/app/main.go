@@ -23,7 +23,7 @@ func main() {
 	database.Migration(db)
 
 	servicesRepository := database.NewServicesRepository(db)
-	smsService := application.NewSmsService(servicesRepository)
+	smsService := application.NewSmsService(servicesRepository, cfg)
 
 	rest.NewServer(smsService).Run()
 }
