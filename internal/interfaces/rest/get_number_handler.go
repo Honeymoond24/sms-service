@@ -42,6 +42,7 @@ func GetNumber(c echo.Context, body map[string]interface{}, service *application
 		serviceName,
 		int(sum),
 		phonePrefixes,
+		PushSms,
 	)
 	if err != nil {
 		if errors.Is(err, application.PhoneNotFound) {

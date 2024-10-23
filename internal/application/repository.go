@@ -8,4 +8,5 @@ type ServicesRepository interface {
 	StoreSms(sms domain.SMS) error
 	GetPhoneNumberByPhone(phone int) (domain.PhoneNumber, error)
 	FinishActivation(activationId, status int) error
+	AddPhoneNumbers(phoneNumbers []domain.PhoneNumber) error
 }

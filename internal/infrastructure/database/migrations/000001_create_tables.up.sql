@@ -1,7 +1,9 @@
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS countries
 (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    country_code INTEGER      NOT NULL,
+    id           SERIAL PRIMARY KEY,
+    country_code INT          NOT NULL,
     name         VARCHAR(255) NOT NULL
 );
 INSERT INTO countries (country_code, name)
@@ -12,11 +14,11 @@ VALUES (1, 'russia'),
        (5, 'germany')
 ON CONFLICT DO NOTHING;
 
-------------------------------------------------------------
+
 
 CREATE TABLE IF NOT EXISTS services
 (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    id           SERIAL PRIMARY KEY,
     service_code VARCHAR(255) NOT NULL,
     name         VARCHAR(255) NOT NULL
 );
@@ -34,20 +36,11 @@ VALUES ('vk', 'vk.com'),
        ('ms', 'microsoft')
 ON CONFLICT DO NOTHING;
 
-------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS activations
-(
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    sum_price  REAL    NOT NULL DEFAULT 0,
-    status     INTEGER NOT NULL REFERENCES activations_statuses (id),
-    phone_id   INTEGER NOT NULL REFERENCES phone_numbers (id),
-    service_id INTEGER NOT NULL REFERENCES services (id)
-);
 
 CREATE TABLE IF NOT EXISTS activations_statuses
 (
-    id   INTEGER PRIMARY KEY,
+    id   INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
 );
 
@@ -56,71 +49,39 @@ VALUES (-1, 'ACCESS_CANCEL'),
        (1, 'ACCESS_READY'),
        (3, 'ACCESS_RETRY_GET'),
        (6, 'ACCESS_ACTIVATION'),
-       (8, 'ACCESS_CANCEL');
+       (8, 'ACCESS_CANCEL')
+ON CONFLICT DO NOTHING;
 
-------------------------------------------------------------
+
 
 CREATE TABLE IF NOT EXISTS phone_numbers
 (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    country_id INTEGER            NOT NULL,
-    number     INTEGER(31) UNIQUE NOT NULL,
-    FOREIGN KEY (country_id) REFERENCES countries (id) ON DELETE CASCADE
+    id         SERIAL PRIMARY KEY,
+    country_id INT        NOT NULL,
+    number     INT UNIQUE NOT NULL,
+    CONSTRAINT phone_numbers_country_id_fkey FOREIGN KEY (country_id) REFERENCES countries (id) ON DELETE CASCADE
 );
 
-INSERT INTO phone_numbers (country_id, number)
-VALUES
-(1, 71000001),
-(1, 71000002),
-(1, 71000003),
-(1, 71000004),
-(1, 71000005),
-(1, 71000006),
-(1, 71000007),
-(1, 71000008),
-(1, 71000009),
-(2, 72000001),
-(2, 72000002),
-(2, 72000003),
-(2, 72000004),
-(2, 72000005),
-(2, 72000006),
-(2, 72000007),
-(2, 72000008),
-(3, 73000001),
-(3, 73000002),
-(3, 73000003),
-(3, 73000004),
-(3, 73000005),
-(3, 73000006),
-(3, 73000007),
-(3, 73000008),
-(3, 73000009),
-(3, 73000010),
-(3, 73000011),
-(3, 73000012),
-(4, 74000001),
-(4, 74000002),
-(4, 74000003),
-(4, 74000004),
-(4, 74000005),
-(4, 74000006),
-(4, 74000007),
-(5, 75000001),
-(5, 75000002),
-(5, 75000003),
-(5, 75000004),
-(5, 75000005);
+
+CREATE TABLE IF NOT EXISTS activations
+(
+    id         SERIAL PRIMARY KEY,
+    sum_price  REAL NOT NULL DEFAULT 0,
+    status     INT  NOT NULL REFERENCES activations_statuses (id),
+    phone_id   INT  NOT NULL REFERENCES phone_numbers (id),
+    service_id INT  NOT NULL REFERENCES services (id),
+    CONSTRAINT activations_phone_id_service_id_unique UNIQUE (phone_id, service_id)
+);
 
 
-
-------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS sms
 (
-    id         INTEGER PRIMARY KEY,
-    sms_id     INTEGER      NOT NULL,
-    phone_id   INTEGER      NOT NULL REFERENCES phone_numbers (id),
+    id         SERIAL PRIMARY KEY,
+    sms_id     INT          NOT NULL,
+    phone_id   INT          NOT NULL REFERENCES phone_numbers (id),
     phone_from VARCHAR(255) NOT NULL,
     text       TEXT         NOT NULL
 );
+
+COMMIT;

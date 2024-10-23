@@ -5,15 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
-	_ "modernc.org/sqlite"
 	"time"
 )
 
 func NewDB(databaseDSN string) *sql.DB {
-	db, err := sql.Open("sqlite", databaseDSN)
+	db, err := sql.Open("pgx", databaseDSN)
 
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
@@ -29,19 +29,14 @@ func NewDB(databaseDSN string) *sql.DB {
 	return db
 }
 
-func Migration(db *sql.DB) {
-	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
-	if err != nil {
-		log.Fatalf("Failed to create driver: %v", err)
-	}
-	m, err := migrate.NewWithDatabaseInstance(
+func Migration(databaseDSN string) {
+	m, err := migrate.New(
 		"file://./internal/infrastructure/database/migrations",
-		"sqlite", driver)
+		databaseDSN)
 	if err != nil {
 		log.Fatalf("Failed to create migration: %v", err)
 	}
-	err = m.Up()
-	if err != nil {
+	if err := m.Up(); err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
 			return
 		}

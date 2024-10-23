@@ -1,6 +1,6 @@
 services:
   api:
-    container_name: "api"
+    container_name: "sms-service-api"
     build: .
     volumes:
       - ./db:/root/db
@@ -13,3 +13,18 @@ services:
       options:
         max-size: "32m"
         max-file: "3"
+
+  db:
+    container_name: "sms-service-db"
+    image: postgres:16.4-alpine
+    env_file:
+      - .env
+    volumes:
+      - ./.docker_volumes/postgres_data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

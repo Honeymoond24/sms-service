@@ -55,10 +55,12 @@ func (s *Server) HandlerBase(c echo.Context) error {
 		return GetServices(c, jsonMap, s.service)
 	case "GET_NUMBER":
 		return GetNumber(c, jsonMap, s.service)
-	case "PUSH_SMS":
-		return PushSms(c, jsonMap, s.service)
+	//case "PUSH_SMS":
+	//	return PushSms(c, jsonMap, s.service)
 	case "FINISH_ACTIVATION":
 		return FinishActivation(c, jsonMap, s.service)
+	case "ADD_NUMBERS":
+		return AddPhoneNumber(c, jsonMap, s.service)
 	default:
 		return c.String(http.StatusBadRequest, "unknown action type")
 	}

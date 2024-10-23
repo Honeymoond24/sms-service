@@ -20,7 +20,7 @@ func main() {
 		}
 	}(db)
 
-	database.Migration(db)
+	database.Migration(cfg.DatabaseDSN)
 
 	servicesRepository := database.NewServicesRepository(db)
 	smsService := application.NewSmsService(servicesRepository, cfg)
